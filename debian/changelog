@@ -1,0 +1,26 @@
+opensdg (1.0.3-1) unstable; urgency=medium
+
+  * Some memory leaks fixed
+
+ -- Pavel Fedin <pavel_fedin@mail.ru>  Sun, 06 Aug 2021 23:51:00 +0300
+
+opensdg (1.0.2-1) unstable; urgency=medium
+
+  * Fixed grid ping, does not drop connections any more
+  * Improved error handling
+
+ -- Pavel Fedin <pavel_fedin@mail.ru>  Sun, 03 May 2020 15:54:00 +0300
+
+opensdg (1.0.1-1) unstable; urgency=medium
+
+  * Fixed freezing in osdg_pair_remote()
+  * Added osdg_get_version() function
+
+ -- Pavel Fedin <pavel_fedin@mail.ru>  Sun, 05 Mar 2020 00:26:00 +0300
+
+opensdg (1.0.0-1) unstable; urgency=medium
+
+  * Initial release
+
+ -- Pavel Fedin <pavel_fedin@mail.ru>  Sun, 01 Mar 2020 11:49:52 +0300
+

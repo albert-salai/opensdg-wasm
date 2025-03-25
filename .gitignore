@@ -1,0 +1,14 @@
+build*
+obj-*
+debian/.debhelper
+debian/debhelper-build-stamp
+debian/files
+debian/opensdg*
+debian/tmp
+*.cmake
+CMakeFiles
+CMakeCache.txt
+Makefile
+library/control_protocol.pb-c.*
+libopensdg.so*
+testapp/opensdg_test
