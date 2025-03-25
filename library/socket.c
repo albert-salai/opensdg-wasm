@@ -2,15 +2,10 @@
 #include "mainloop.h"
 #include "socket.h"
 
-#ifdef _WIN32
-#include <WS2tcpip.h>
-#else
 #include <netdb.h>
 
 #define WSAEWOULDBLOCK EWOULDBLOCK
 #define WSAEINTR EINTR
-
-#endif
 
 int connect_to_host(struct _osdg_connection *client, const char *host, unsigned short port)
 {
@@ -57,12 +52,10 @@ int connect_to_host(struct _osdg_connection *client, const char *host, unsigned 
         if (!res)
         {
             static unsigned long nonblock = 1;
- 
+
             LOG(CONNECTION, "Connected to %s:%u", host, port);
-#ifndef _WIN32
-            /* Unnecessary for Win32 because attaching WSAEvent automatically
-               makes the socket non-blocking */
-            res = ioctlsocket(s, FIONBIO, &nonblock);
+
+			res = ioctlsocket(s, FIONBIO, &nonblock);
             if (res)
             {
                 client->errorKind = osdg_socket_error;
@@ -71,8 +64,8 @@ int connect_to_host(struct _osdg_connection *client, const char *host, unsigned 
                 closesocket(s);
                 break; /* It's a serious error, will return -1 */
             }
-#endif
-            client->sock = s;
+
+			client->sock = s;
 
             res = start_connection(client);
             if (!res)
@@ -89,7 +82,7 @@ int connect_to_host(struct _osdg_connection *client, const char *host, unsigned 
         {
             closesocket(s);
             LOG(CONNECTION, "Failed to connect to %s:%u", host, port);
-            res = 0; 
+            res = 0;
         }
         res = 0; /* OK to try the next address */
     }

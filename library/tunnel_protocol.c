@@ -1,9 +1,7 @@
 #include <errno.h>
 #include <sodium.h>
 #include <string.h>
-#ifndef _WIN32
 #include <sys/socket.h>
-#endif
 
 #include "client.h"
 #include "logging.h"

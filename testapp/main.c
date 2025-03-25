@@ -4,9 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef _WIN32
 #include <unistd.h>
-#endif
 
 #include "opensdg.h"
 #include "testapp.h"
@@ -125,7 +123,7 @@ static void list_pairings(void)
 int add_pairing(osdg_key_t peerId, const char *description)
 {
   unsigned int i;
-  
+
   for (i = 0; i < pairings.count; i++)
   {
     if (!memcmp(pairings.data[i].peerId, peerId, sizeof(osdg_key_t)))
@@ -253,7 +251,7 @@ static void pairing_status_changed(osdg_connection_t conn, enum osdg_connection_
         printf("Pairing successful with peerId ");
         hexdump(peerId, sizeof(osdg_key_t));
         putchar('\n');
-        
+
         if (!devismart_config_connect(conn))
             return;
     case osdg_error:
@@ -506,7 +504,7 @@ int main(int argc, const char *const *argv)
   setlocale(LC_ALL, "");
 
   osdg_get_version(&ver);
-  printf("Using libopensdg v%u.%u.%u\n", ver.major, ver.minor, ver.patch); 
+  printf("Using libopensdg v%u.%u.%u\n", ver.major, ver.minor, ver.patch);
 
   for (i = 1; i < argc; i++)
   {
@@ -564,11 +562,7 @@ int main(int argc, const char *const *argv)
       if (r != osdg_no_error)
       {
           print_client_error(client);
-#ifdef _WIN32
-          Sleep(1000);
-#else
           sleep(1);
-#endif
       }
   } while (r != osdg_no_error);
 

@@ -1,12 +1,6 @@
 #ifndef INTERNAL_SOCKET_H
 #define INTERNAL_SOCKET_H
 
-#ifdef _WIN32
-
-#include <WinSock2.h>
-
-#else
-
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
@@ -29,7 +23,6 @@ static inline int WSAGetLastError(void)
     return errno;
 }
 
-#endif
 
 int connect_to_host(struct _osdg_connection *client, const char *host, unsigned short port);
 int receive_data(struct _osdg_connection *client);

@@ -6,14 +6,6 @@
 #include "utils.h"
 #include "version.h"
 
-#ifndef _WIN32
-
-static inline void WSACleanup()
-{
-}
-
-#endif
-
 osdg_result_t osdg_init(void)
 {
     int res;
@@ -24,24 +16,6 @@ osdg_result_t osdg_init(void)
         return osdg_crypto_core_error;
     }
 
-#ifdef _WIN32
-    WSADATA wsData;
-
-    res = WSAStartup(MAKEWORD(2, 2), &wsData);
-    if (res)
-    {
-        char *str;
-
-        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, res, LANG_USER_DEFAULT, (LPSTR)&str, 1, NULL);
-
-        LOG(ERRORS, "Winsock 2.2 init failed: %s", str);
-        LocalFree(str);
-
-        return osdg_socket_error;
-    }
-#endif
-
     mainloop_events_init();
 
     res = mainloop_init();
@@ -49,7 +23,6 @@ osdg_result_t osdg_init(void)
         return osdg_no_error;
 
     mainloop_events_shutdown();
-    WSACleanup();
     return osdg_system_error;
 }
 
@@ -57,7 +30,6 @@ void osdg_shutdown(void)
 {
     mainloop_shutdown();
     mainloop_events_shutdown();
-    WSACleanup();
 }
 
 void osdg_create_private_key(osdg_key_t key)

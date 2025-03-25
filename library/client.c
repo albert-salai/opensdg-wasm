@@ -51,7 +51,7 @@ int connection_allocate_buffers(struct _osdg_connection *conn)
 osdg_connection_t osdg_connection_create(void)
 {
   struct _osdg_connection *client = malloc(sizeof(struct _osdg_connection));
-  
+
   if (!client)
     return NULL;
 
@@ -176,67 +176,6 @@ osdg_result_t osdg_get_last_result(osdg_connection_t client)
 
 int osdg_get_last_errno(osdg_connection_t client)
 {
-#ifdef _WIN32
-  /* Provide standard errnos in order to avoid ifdef's in applications */
-  switch (client->errorCode)
-  {
-  case WSAEWOULDBLOCK:
-      return EWOULDBLOCK;
-  case WSAEINTR:
-      return EINTR;
-  case WSAEINPROGRESS:
-      return EINPROGRESS;
-  case WSAENOTSOCK:
-      return ENOTSOCK;
-  case WSAEDESTADDRREQ:
-      return EDESTADDRREQ;
-  case WSAEMSGSIZE:
-      return EMSGSIZE;
-  case WSAEPROTOTYPE:
-      return EPROTOTYPE;
-  case WSAENOPROTOOPT:
-      return ENOPROTOOPT;
-  case WSAEPROTONOSUPPORT:
-      return EPROTONOSUPPORT;
-  case WSAEOPNOTSUPP:
-      return EOPNOTSUPP;
-  case WSAEAFNOSUPPORT:
-      return EAFNOSUPPORT;
-  case WSAEADDRINUSE:
-      return EADDRINUSE;
-  case WSAEADDRNOTAVAIL:
-      return EADDRNOTAVAIL;
-  case WSAENETDOWN:
-      return ENETDOWN;
-  case WSAENETUNREACH:
-      return ENETUNREACH;
-  case WSAENETRESET:
-      return ENETRESET;
-  case WSAECONNABORTED:
-      return ECONNABORTED;
-  case WSAECONNRESET:
-      return ECONNRESET;
-  case WSAENOBUFS:
-      return ENOBUFS;
-  case WSAEISCONN:
-      return EISCONN;
-  case WSAENOTCONN:
-      return ENOTCONN;
-  case WSAETIMEDOUT:
-      return ETIMEDOUT;
-  case WSAECONNREFUSED:
-      return ECONNREFUSED;
-  case WSAELOOP:
-      return ELOOP;
-  case WSAENAMETOOLONG:
-      return ENAMETOOLONG;
-  case WSAEHOSTUNREACH:
-      return EHOSTUNREACH;
-  case WSAENOTEMPTY:
-      return ENOTEMPTY;
-  }
-#endif
-
   return client->errorCode;
 }
 
@@ -247,24 +186,13 @@ size_t osdg_get_last_result_str(osdg_connection_t conn, char *buffer, size_t len
 
     if (conn->errorKind == osdg_socket_error)
     {
-        /* Unfortunately strerror() in MS CRT is very rudimentary and does not
-           know all the codes we need here. So we have to use OS specifics here */
-#ifdef _WIN32
-        char *err;
-        DWORD r2 = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                                  NULL, conn->errorCode, LANG_USER_DEFAULT, (LPSTR)&err, 1, NULL);
-#else
         const char *err = strerror(conn->errorCode);
-#endif
 
         rl += strlen(err) + 2;
 
         if (buffer)
             snprintf(buffer, len, "%s: %s", res, err);
 
-#ifdef _WIN32
-        LocalFree(err);
-#endif
     }
     else if (buffer)
     {

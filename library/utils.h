@@ -96,15 +96,6 @@ typedef unsigned long long timestamp_t;
 #define TS_NEVER -1LL
 #define MILLISECONDS_PER_SECOND 1000
 
-#ifdef _WIN32
-
-static timestamp_t timestamp(void)
-{
-    return GetTickCount64();
-}
-
-#else
-
 #include <time.h>
 
 static timestamp_t timestamp(void)
@@ -114,7 +105,5 @@ static timestamp_t timestamp(void)
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return (unsigned long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 }
-
-#endif
 
 #endif
