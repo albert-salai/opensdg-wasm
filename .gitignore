@@ -5,5 +5,10 @@ debian/debhelper-build-stamp
 debian/files
 debian/opensdg*
 debian/tmp
-java/target
-java/*.jar
+*.cmake
+CMakeFiles
+CMakeCache.txt
+Makefile
+library/control_protocol.pb-c.*
+libopensdg.so*
+testapp/opensdg_test
