@@ -130,12 +130,12 @@ int mainloop_init(void)
 
     events[0].events = POLLIN;
     stopFlag = 0;
-    
+
     ret = pthread_create(&thread, NULL, osdg_main, NULL);
     if (!ret)
         return 0;
 
-    close(events[0].fd);
+    closesocket(events[0].fd);
     errno = ret;
     return -1;
 }
@@ -145,5 +145,5 @@ void mainloop_shutdown(void)
     stopFlag = 1;
     mainloop_client_event();
     pthread_join(thread, NULL);
-    close(events[0].fd);
+    closesocket(events[0].fd);
 }

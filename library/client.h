@@ -22,6 +22,7 @@ enum connection_mode
     mode_pairing
 };
 
+
 struct _osdg_connection
 {
   struct client_req          req;
@@ -50,14 +51,13 @@ struct _osdg_connection
   char                       protocol[SDG_MAX_PROTOCOL_BYTES];
   unsigned char              pairingResult[32];
   event_t                    completion;
-  char                       blocking;
   char                       closing;
   char                       haveBuffers;
   size_t                     bufferSize;
   struct queue               bufferQueue;
-  unsigned char             *receiveBuffer;
-  unsigned int               bytesReceived;
-  unsigned int               bytesLeft;
+  unsigned char             *receiveBuffer;			// incoming packet buffer; bytes 0,1 are data size (big-endian)
+  unsigned int               bytesReceived;			// number of received packet bytes in receiveBuffer
+  unsigned int               bytesLeft;				// number of packet bytes still to be received
   unsigned int               discardFirstBytes;
   unsigned int               pingSequence;      /* Ping packet counter, monotonically increases */
   unsigned int               pingInterval;      /* In milliseconds */
