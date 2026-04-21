@@ -27,7 +27,7 @@ static int peer_call_remote(struct _osdg_connection *peer)
 
     registry_add_connection(peer);
 
-    LOG(PROTOCOL, "Peer[%u] connecting to %s:%s", peer->uid, peerIdStr, peer->protocol);
+	LOG(PROTOCOL, "Peer[%u] peer_call_remote()       %s:%s", peer->uid, peerIdStr, peer->protocol);
 
     request.id = peer->uid;
     request.peerid = peerIdStr;
@@ -40,7 +40,7 @@ static int peer_call_remote(struct _osdg_connection *peer)
 osdg_result_t osdg_connect_to_remote(osdg_connection_t grid, osdg_connection_t peer, const osdg_key_t peerId, const char *protocol)
 {
   int ret;
-  
+
   if ((grid->state != osdg_connected) || connection_in_use(peer))
     return osdg_wrong_state;
 
@@ -55,6 +55,10 @@ osdg_result_t osdg_connect_to_remote(osdg_connection_t grid, osdg_connection_t p
   memcpy(peer->clientSecret, grid->clientSecret, sizeof(peer->clientSecret));
   memcpy(peer->serverPubkey, peerId, sizeof(peer->serverPubkey));
   strncpy(peer->protocol, protocol, sizeof(peer->protocol));
+
+  char peerIdStr[crypto_box_PUBLICKEYBYTES * 2 + 1];
+  sodium_bin2hex(peerIdStr, sizeof(peerIdStr), peer->serverPubkey, sizeof(peer->serverPubkey));
+  LOG(PROTOCOL, " Peer[ ] osdg_connect_to_remote() %s:%s", peerIdStr, peer->protocol);
 
   /*
    * DEVISmart thermostat has a quirk: very first packet is prefixed with
@@ -72,7 +76,7 @@ osdg_result_t osdg_connect_to_remote(osdg_connection_t grid, osdg_connection_t p
       peer->discardFirstBytes = 1;
 
   mainloop_send_client_request(&peer->req, peer_call_remote);
-  return connection_wait(peer);
+  return osdg_no_error;
 }
 
 static osdg_result_t pairing_handle_incoming_packet(struct _osdg_connection *conn,
@@ -243,7 +247,7 @@ osdg_result_t osdg_pair_remote(osdg_connection_t grid, osdg_connection_t peer, c
     peer->grid        = grid;
 
     mainloop_send_client_request(&peer->req, peer_pair_remote);
-    return connection_wait(peer);
+    return osdg_no_error;
 }
 
 int peer_handle_remote_call_reply(struct _osdg_connection *peer, PeerReply *reply)
@@ -261,7 +265,7 @@ int peer_handle_remote_call_reply(struct _osdg_connection *peer, PeerReply *repl
     DUMP(PROTOCOL, reply->peer->tunnelid.data, reply->peer->tunnelid.len,
          "Peer[%u] Forwarding ready at %s:%u tunnel", reply->id,
          reply->peer->server->host, reply->peer->server->port);
- 
+
     peer->tunnelIdSize = reply->peer->tunnelid.len;
     peer->tunnelId = malloc(peer->tunnelIdSize);
     if (!peer->tunnelId)

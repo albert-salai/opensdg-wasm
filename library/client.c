@@ -67,7 +67,6 @@ osdg_connection_t osdg_connection_create(void)
   client->userData      = NULL;
   client->nonce         = 0;
   client->tunnelId      = NULL;
-  client->blocking      = 0;
   client->closing       = 0;
   client->haveBuffers   = 0;
   /*
@@ -151,7 +150,7 @@ osdg_result_t osdg_connection_close(osdg_connection_t conn)
 
     conn->closing  = 1;
     mainloop_send_client_request(&conn->req, connection_close);
-    return connection_wait(conn);
+    return osdg_no_error;
 }
 
 void osdg_connection_destroy(osdg_connection_t client)
@@ -206,8 +205,7 @@ size_t osdg_get_last_result_str(osdg_connection_t conn, char *buffer, size_t len
     return rl;
 }
 
-const unsigned char *osdg_get_peer_id(osdg_connection_t conn)
-{
+const unsigned char *osdg_get_peer_id(osdg_connection_t conn) {
     return conn->serverPubkey;
 }
 
@@ -216,111 +214,76 @@ enum osdg_connection_state osdg_get_connection_state(osdg_connection_t conn)
     return conn->state;
 }
 
-osdg_result_t osdg_set_state_change_callback(osdg_connection_t client, osdg_state_cb_t f)
-{
+void osdg_set_state_change_callback(osdg_connection_t client, osdg_state_cb_t f) {
     client->changeState = f;
-    return osdg_no_error;
 }
 
-osdg_result_t osdg_set_receive_data_callback(osdg_connection_t client, osdg_receive_cb_t f)
-{
+osdg_result_t osdg_set_receive_data_callback(osdg_connection_t client, osdg_receive_cb_t f) {
     /* Grid and pairing connections have internal data handler, don't screw them up */
-    if (connection_in_use(client) && client->mode != mode_peer)
-        return osdg_wrong_state;
+    if (! connection_in_use(client) || client->mode == mode_peer) {
+		client->receiveData = f;
+		return osdg_no_error;
 
-    client->receiveData = f;
-    return osdg_no_error;
+	} else {
+        return osdg_wrong_state;
+	}
 }
 
-void osdg_set_user_data(osdg_connection_t conn, void *data)
-{
+void osdg_set_user_data(osdg_connection_t conn, void *data) {
     conn->userData = data;
 }
 
-void *osdg_get_user_data(osdg_connection_t conn)
-{
+void *osdg_get_user_data(osdg_connection_t conn) {
     return conn->userData;
 }
 
-void osdg_set_blocking_mode(osdg_connection_t conn, int blocking)
-{
-    conn->blocking = blocking;
-}
-
-int osdg_get_blocking_mode(osdg_connection_t conn)
-{
-    return conn->blocking;
-}
-
-void connection_set_status(struct _osdg_connection *conn, enum osdg_connection_state state)
-{
+void connection_set_status(struct _osdg_connection *conn, enum osdg_connection_state state) {
     enum osdg_connection_state oldState = conn->state;
-    /* For non-blocking connection state change callback can destroy the connection
-       if it won't be used any more, so read blocking flag right now. */
-    int blocking = conn->blocking;
 
     conn->state = state;
     if (conn->changeState)
         conn->changeState(conn, state);
-    if (!blocking)
-        return;
-    if (oldState == osdg_connecting || state == osdg_closed || state == osdg_pairing_complete)
-        event_post(&conn->completion);
 }
 
-osdg_result_t connection_wait(struct _osdg_connection *conn)
-{
-    if (conn->blocking)
-    {
-        event_wait(&conn->completion);
-        if (conn->state == osdg_error)
-            return conn->errorKind;
-    }
-
-    return osdg_no_error;
-}
-
-int connection_set_result(struct _osdg_connection *conn, osdg_result_t result)
-{
-    if (result == osdg_no_error)
+int connection_set_result(struct _osdg_connection *conn, osdg_result_t result) {
+    if (result == osdg_no_error) {
         return 0;
-    if (result == osdg_socket_error)
-        conn->errorCode = WSAGetLastError();
-    conn->errorKind = result;
-    return -1;
+
+	} else {
+		conn->errorKind = result;
+		if (result == osdg_socket_error) {
+			conn->errorCode = errno;
+		}
+		return -1;
+	}
 }
 
-void *client_get_buffer(struct _osdg_connection *client)
-{
+void *client_get_buffer(struct _osdg_connection *client) {
   struct osdg_buffer *buffer = queue_get(&client->bufferQueue);
 
-  if (!buffer)
+  if (! buffer) {
     buffer = malloc(client->bufferSize);
+  }
 
   return buffer;
 }
 
-void connection_read_data(struct _osdg_connection *conn)
-{
+void connection_read_data(struct _osdg_connection *conn) {
     int ret;
 
-    if (!conn->receiveBuffer)
-    {
+    if (! conn->receiveBuffer) {
         conn->receiveBuffer = client_get_buffer(conn);
         conn->bytesLeft = 0;
     }
 
     ret = receive_packet(conn);
-    if (ret)
-    {
-        LOG(ERRORS, "Conn[%p] died: %s system code %d", conn,
-            osdg_get_result_str(conn->errorKind), conn->errorCode);
+    if (ret) {
+        LOG(ERRORS, "Conn[%p] died: %s system code %d", conn, osdg_get_result_str(conn->errorKind), conn->errorCode);
         connection_terminate(conn, osdg_error);
     }
 }
 
-int connection_handle_data(struct _osdg_connection *conn, const unsigned char *data, unsigned int length)
-{
+int connection_handle_data(struct _osdg_connection *conn, const unsigned char *data, unsigned int length) {
     unsigned int discard = conn->discardFirstBytes;
     conn->discardFirstBytes = 0; /* Discarded */
 

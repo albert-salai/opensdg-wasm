@@ -9,7 +9,7 @@ static osdg_result_t grid_handle_incoming_packet(struct _osdg_connection *conn,
     const unsigned char *data = p;
     osdg_result_t ret = osdg_no_error;
     unsigned char msgType;
-  
+
     /*
      * Grid messages come in protobuf format, prefixed by one byte, indicating
      * message type.
@@ -70,7 +70,7 @@ static osdg_result_t grid_handle_incoming_packet(struct _osdg_connection *conn,
         if (reply->seq == conn->pingSequence - 1)
         {
             conn->pingDelay = (int)(timestamp() - conn->lastPing);
-            LOG(PROTOCOL, "Grid[%p] PING roundtrip %ld ms", conn, conn->pingDelay);
+            LOG(PROTOCOL, "Grid[%p] %-10s roundtrip %ld ms", conn, "PING", conn->pingDelay);
         }
 
         pong__free_unpacked(reply, NULL);
@@ -230,7 +230,7 @@ osdg_result_t osdg_connect_to_grid(osdg_connection_t client,
         return osdg_connection_failed;
     }
 
-    return connection_wait(client);
+    return osdg_no_error;
 }
 
 osdg_result_t osdg_set_ping_interval(osdg_connection_t conn, unsigned int seconds)

@@ -6,7 +6,26 @@
 	],
 	"settings": {
 		"files.associations": {
-			"opensdg.h": "c"
+			"opensdg.h": "c",
+			"client.h": "c",
+			"socket.h": "c",
+			"select.h": "c",
+			"types.h": "c",
+			"tunnel_protocol.h": "c",
+			"control_protocol.pb-c.h": "c",
+			"mainloop.h": "c",
+			"utils.h": "c",
+			"netdb.h": "c",
+			"array": "c",
+			"deque": "c",
+			"string": "c",
+			"unordered_map": "c",
+			"vector": "c",
+			"string_view": "c",
+			"initializer_list": "c",
+			"testapp.h": "c",
+			"jsmn.h": "c",
+			"unistd.h": "c"
 		}
 	}
 }

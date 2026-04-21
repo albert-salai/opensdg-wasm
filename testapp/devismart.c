@@ -742,18 +742,18 @@ static void printDateTime(struct DateTime *dt)
 }
 
 static int handle_single_packet(const uint8_t *data, uint32_t size)
-{ 
+{
   const struct MsgHeader *header = (const struct MsgHeader *)data;
   unsigned int packetSize = header->dataSize + sizeof(struct MsgHeader);
   const char *cmd;
   const uint8_t *payload = data + sizeof(struct MsgHeader);
   struct AwayInterval *away;
-  
+
   if (packetSize > size)
 	return -1;
-  
+
   cmd = strCode(header->msgCode);
- 
+
   switch (header->msgCode)
   {
   case NVM_RUNTIME_STATS:
@@ -866,19 +866,13 @@ static int handle_single_packet(const uint8_t *data, uint32_t size)
 
   default:
     // We don't know (yet) how to handle it, just dump
-    if (cmd)
-    {
-      printf("%s %u ", cmd, header->dataSize);
-      data += sizeof(struct MsgHeader);
-      size = header->dataSize;
-    }
-    else
-    {
-      printf("Unknown command code %u in packet:\n", header->msgCode);
-    }
-    dump_data(data, size);
+	data += sizeof(struct MsgHeader);
+	size = header->dataSize;
+	if (cmd)	{ printf("class %3d %-25s %3d  ",			header->msgClass, cmd,					header->dataSize);	}
+	else		{ printf("class %3d code %5u %19s %3u  ",	header->msgClass, header->msgCode, "",	header->dataSize);	}
+	dump_data(data, size);
   }
-  
+
   return packetSize;
 }
 
@@ -897,7 +891,7 @@ osdg_result_t devismart_receive_data(osdg_connection_t conn, const void *ptr, un
     while (size >= sizeof(struct MsgHeader))
     {
         int handled = handle_single_packet(data, size);
-	
+
 	if (handled == -1)
 	{
 	  printf("Malformed stream at position %d; size exceeds maximum:\n", (int)(data - start));
@@ -908,13 +902,13 @@ osdg_result_t devismart_receive_data(osdg_connection_t conn, const void *ptr, un
 	size -= handled;
 	data += handled;
     }
-  
+
     if (size)
     {
         printf("Leftover fragment; size %d:\n", size);
         dump_data(data, size);
     }
- 
+
     return osdg_no_error;
 }
 
